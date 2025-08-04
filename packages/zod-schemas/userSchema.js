@@ -17,13 +17,10 @@ const baseUserSchema = z
   })
   .strip();
 
-//=======================Request=======================================
-
 const registerRequestSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    // confirmPassword: z.string(),
+    password: z.string().min(6),
     first_name: z.string().min(1),
     last_name: z.string().min(1),
   }),
@@ -32,7 +29,7 @@ const registerRequestSchema = z.object({
 const loginRequestSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(6, "Password is required"),
+    password: z.string().min(6),
   }),
 });
 
@@ -41,17 +38,8 @@ const updateProfileRequestSchema = z.object({
     .object({
       first_name: z.string().min(1).optional(),
       last_name: z.string().min(1).optional(),
-      email: z.string().email().optional(),
-      currentPassword: z.string().min(6).optional(),
-      newPassword: z.string().min(6).optional(),
     })
     .strip(),
-});
-
-const uploadAvatarRequestSchema = z.object({
-  body: z.object({
-    filename: z.string(),
-  }),
 });
 
 const deleteProfileRequestSchema = z.object({
@@ -60,30 +48,25 @@ const deleteProfileRequestSchema = z.object({
   }),
 });
 
-//==========================Response Schema==============================
-
-const successResponseSchema = z.object({
+const userSuccessResponseSchema = z.object({
   status: z.literal("success"),
-  message: z.string().optional(),
-  data: z
-    .object({
-      user: baseUserSchema,
-    })
-    .optional(),
+  message: z.string(),
+  data: z.object({
+    user: baseUserSchema.omit({ google_id: true }),
+  }),
 });
 
-// For delete profile response (no user data)
-const deleteProfileResponseSchema = successResponseSchema.extend({
-  data: z.undefined(),
+const simpleSuccessResponseSchema = z.object({
+  status: z.literal("success"),
+  message: z.string(),
 });
 
 module.exports = {
+  baseUserSchema,
   registerRequestSchema,
   loginRequestSchema,
   updateProfileRequestSchema,
-  uploadAvatarRequestSchema,
   deleteProfileRequestSchema,
-  successResponseSchema,
-  deleteProfileResponseSchema,
-  baseUserSchema,
+  userSuccessResponseSchema, // register, login, update profile
+  simpleSuccessResponseSchema, // delete profile
 };
