@@ -5,9 +5,9 @@ const Category = sequelize.define(
   "Category",
   {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -20,7 +20,7 @@ const Category = sequelize.define(
       unique: true,
     },
     parent_id: {
-      type: DataTypes.UUID,
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: "categories",
@@ -31,9 +31,12 @@ const Category = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    
   },
   {
     tableName: "categories",
+    underscored:true,
+    timestamps:true,
   }
 );
 

@@ -6,7 +6,7 @@ const baseRequestSchema = z.object({
   price: z.number().positive("Price must be a positive number"),
   sku: z.string().min(3, "SKU is required"),
   stock: z.number().int().min(0, "Stock cannot be negative"),
-  category_id: z.string().uuid("A valid category ID is required"),
+  category_id: z.number().int("A valid category ID is required"),
   images: z.array(z.string().url()).optional(),
 });
 
@@ -29,10 +29,19 @@ const createProductRequestSchema = z.discriminatedUnion("product_type", [
   stationeryRequestSchema,
 ]);
 
-const updateProductRequestSchema = z.discriminatedUnion("product_type", [
-  bookRequestSchema.partial(),
-  stationeryRequestSchema.partial(),
-]);
+const updateProductRequestSchema = z.object({
+  product_type: z.enum(["book", "stationery"]).optional(),
+  name: z.string().min(3).optional(),
+  description: z.string().min(10).optional(),
+  price: z.number().positive().optional(),
+  sku: z.string().min(3).optional(),
+  stock: z.number().int().min(0).optional(),
+  category_id: z.number().int().optional(),
+  images: z.array(z.string().url()).optional(),
+  author: z.string().optional(),
+  isbn: z.string().optional(),
+  brand: z.string().optional(),
+});
 
 const productResponseSchema = z.object({
   id: z.string().uuid(),

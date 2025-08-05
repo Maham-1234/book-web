@@ -61,7 +61,7 @@ const Product = sequelize.define(
       defaultValue: true,
     },
     category_id: {
-      type: DataTypes.UUID,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: "categories",
@@ -71,6 +71,7 @@ const Product = sequelize.define(
   },
   {
     tableName: "products",
+    timestamps:true,
   }
 );
 
