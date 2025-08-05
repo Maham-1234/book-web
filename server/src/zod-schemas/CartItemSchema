@@ -1,5 +1,5 @@
 const { z } = require("zod");
-const { productResponseSchema } = require("./productSchemas");
+const { productResponseSchema } = require("./productSchema");
 
 const addItemRequestSchema = z.object({
   product_id: z.string().uuid("You must provide a valid product ID."),

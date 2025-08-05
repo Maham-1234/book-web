@@ -2,7 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const passport = require("passport");
 const session = require("express-session");
+const router = require("./src/router");
 require("./src/config/passport");
+const { RedisStore } = require("connect-redis");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
 
 const { sequelize } = require("./src/models");
 
@@ -13,6 +18,7 @@ const PORT = process.env.PORT || 3000;
     const app = express();
 
     const { redisClient, connectRedis } = require("./src/config/redis");
+
     console.log(typeof RedisStore);
     redisClient.on("error", (err) => {
       console.error("Redis Client Error:", err);
@@ -65,6 +71,7 @@ const PORT = process.env.PORT || 3000;
 
     app.use(express.static("public"));
 
+    app.use("/", router);
     const startServer = async () => {
       try {
         if (redisClient.isReady) {
@@ -76,7 +83,7 @@ const PORT = process.env.PORT || 3000;
         await sequelize.authenticate();
         console.log("Database connected successfully");
 
-        await sequelize.sync({ force: false });
+        await sequelize.sync({ force: true });
         console.log("Database synchronized");
 
         app.listen(PORT, () => {

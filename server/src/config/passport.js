@@ -18,7 +18,7 @@ passport.use(
           return done(null, false, { message: "Invalid email or password." });
         }
 
-        if (!user.isActive) {
+        if (!user.is_active) {
           return done(null, false, {
             message: "This account has been deactivated.",
           });
@@ -46,7 +46,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await User.findOne({ where: { googleId: profile.id } });
+        let user = await User.findOne({ where: { google_id: profile.id } });
 
         if (user) {
           return done(null, user);
@@ -56,20 +56,20 @@ passport.use(
         user = await User.findOne({ where: { email } });
 
         if (user) {
-          user.googleId = profile.id;
+          user.google_id = profile.id;
           user.provider = "google";
           await user.save();
           return done(null, user);
         }
 
         const newUser = await User.create({
-          googleId: profile.id,
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
+          google_id: profile.id,
+          first_name: profile.name.givenName,
+          last_name: profile.name.familyName,
           email: email,
           password: null,
           provider: "google",
-          isEmailVerified: true,
+          is_email_verified: true,
         });
 
         return done(null, newUser);

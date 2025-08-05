@@ -1,5 +1,5 @@
 const { z } = require("zod");
-const { productResponseSchema } = require("./productSchemas");
+const { productResponseSchema } = require("./productSchema");
 
 const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),

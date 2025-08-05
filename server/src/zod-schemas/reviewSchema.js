@@ -24,10 +24,6 @@ const updateReviewRequestSchema = z
     message: "Either a rating or a comment must be provided to update.",
   });
 
-const reviewParamsSchema = z.object({
-  review_id: z.string().uuid("Invalid review ID format in URL."),
-});
-
 const reviewResponseSchema = z.object({
   id: z.string().uuid(),
   rating: z.number().int(),
@@ -47,7 +43,6 @@ const reviewListResponseSchema = z.array(reviewResponseSchema);
 module.exports = {
   createReviewRequestSchema,
   updateReviewRequestSchema,
-  reviewParamsSchema,
   reviewResponseSchema,
   reviewListResponseSchema,
 };

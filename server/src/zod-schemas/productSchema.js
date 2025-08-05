@@ -29,7 +29,10 @@ const createProductRequestSchema = z.discriminatedUnion("product_type", [
   stationeryRequestSchema,
 ]);
 
-const updateProductRequestSchema = createProductRequestSchema.partial();
+const updateProductRequestSchema = z.discriminatedUnion("product_type", [
+  bookRequestSchema.partial(),
+  stationeryRequestSchema.partial(),
+]);
 
 const productResponseSchema = z.object({
   id: z.string().uuid(),
@@ -49,7 +52,7 @@ const productResponseSchema = z.object({
   updated_at: z.date(),
 });
 
-const productListResponseSchema = z.array(productResponsecha);
+const productListResponseSchema = z.array(productResponseSchema);
 
 module.exports = {
   createProductRequestSchema,
