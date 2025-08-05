@@ -1,0 +1,31 @@
+const { z } = require("zod");
+const { productResponseSchema } = require("./productSchemas");
+
+const addItemRequestSchema = z.object({
+  product_id: z.string().uuid("You must provide a valid product ID."),
+  quantity: z.number().int().positive("Quantity must be at least 1."),
+});
+
+const updateItemRequestSchema = z.object({
+  quantity: z.number().int().positive("Quantity must be at least 1."),
+});
+
+const cartItemResponseSchema = z.object({
+  id: z.string().uuid(),
+  quantity: z.number().int(),
+  product: productResponseSchema.pick({
+    id: true,
+    name: true,
+    price: true,
+    images: true,
+    stock: true,
+    slug: true,
+    is_active: true,
+  }),
+});
+
+module.exports = {
+  addItemRequestSchema,
+  updateItemRequestSchema,
+  cartItemResponseSchema,
+};
