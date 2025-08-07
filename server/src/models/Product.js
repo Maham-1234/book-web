@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const Product = sequelize.define(
-  "Product",
+  'Product',
   {
     id: {
       type: DataTypes.UUID,
@@ -37,9 +37,10 @@ const Product = sequelize.define(
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: [],
     },
-    product_type: {
-      type: DataTypes.ENUM("book", "stationery", "art_supply", "other"),
+    productType: {
+      type: DataTypes.ENUM('book', 'stationery', 'art_supply', 'other'),
       allowNull: false,
+      field: 'product_type',
     },
     author: {
       // Specific to books
@@ -59,19 +60,22 @@ const Product = sequelize.define(
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      field: 'is_active',
     },
-    category_id: {
+    categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "categories",
-        key: "id",
+        model: 'categories',
+        key: 'id',
       },
+      field: 'category_id',
     },
   },
   {
-    tableName: "products",
-    timestamps:true,
+    tableName: 'products',
+    underscored: true,
+    timestamps: true,
   }
 );
 

@@ -1,11 +1,11 @@
 exports.successResponse = (
   res,
   data,
-  message = "Success",
+  message = 'Success',
   statusCode = 200
 ) => {
   return res.status(statusCode).json({
-    status: "success",
+    status: 'success',
     message,
     data,
   });
@@ -13,11 +13,11 @@ exports.successResponse = (
 
 exports.errorResponse = (
   res,
-  message = "An error occurred",
+  message = 'An error occurred',
   statusCode = 500
 ) => {
   return res.status(statusCode).json({
-    status: "error",
+    status: 'error',
     message,
   });
 };

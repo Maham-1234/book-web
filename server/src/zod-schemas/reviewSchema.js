@@ -1,17 +1,17 @@
-const { z } = require("zod");
-const { userResponseSchema } = require("./userSchema");
+const { z } = require('zod');
+const { userResponseSchema } = require('./userSchema');
 
 const createReviewRequestSchema = z.object({
   rating: z
     .number()
     .int()
-    .min(1, "Rating must be 1-5")
-    .max(5, "Rating must be 1-5"),
+    .min(1, 'Rating must be 1-5')
+    .max(5, 'Rating must be 1-5'),
   comment: z
     .string()
-    .min(10, "Comment must be at least 10 characters")
+    .min(10, 'Comment must be at least 10 characters')
     .optional(),
-  product_id: z.string().uuid("A valid product ID is required"),
+  productId: z.string().uuid('A valid product ID is required'),
 });
 
 const updateReviewRequestSchema = z
@@ -21,20 +21,20 @@ const updateReviewRequestSchema = z
   })
   .partial()
   .refine((data) => data.rating !== undefined || data.comment !== undefined, {
-    message: "Either a rating or a comment must be provided to update.",
+    message: 'Either a rating or a comment must be provided to update.',
   });
 
 const reviewResponseSchema = z.object({
   id: z.string().uuid(),
   rating: z.number().int(),
   comment: z.string().nullable(),
-  is_verified_purchase: z.boolean(),
-  product_id: z.string().uuid(),
-  created_at: z.date(),
-  updated_At: z.date(),
+  isVerifiedPurchase: z.boolean(),
+  productId: z.string().uuid(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
   user: userResponseSchema.pick({
     id: true,
-    first_name: true,
+    firstName: true,
   }),
 });
 

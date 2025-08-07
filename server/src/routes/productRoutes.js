@@ -1,25 +1,25 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const validate = require("../middleware/validation");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
-const productController = require("../controllers/productController");
+const validate = require('../middleware/validation');
+const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const productController = require('../controllers/productController');
 
 const {
   createProductRequestSchema,
   updateProductRequestSchema,
   uuidParamSchema,
-} = require("../zod-schemas");
+} = require('../zod-schemas');
 
-router.get("/", productController.getAllProducts);
+router.get('/', productController.getAllProducts);
 
 router.get(
-  "/:id",
+  '/:id',
   validate({ param: uuidParamSchema }),
   productController.getProductById
 );
 
 router.post(
-  "/",
+  '/',
   isAuthenticated,
   isAdmin,
   validate({ body: createProductRequestSchema }),
@@ -27,7 +27,7 @@ router.post(
 );
 
 router.put(
-  "/:id",
+  '/:id',
   isAuthenticated,
   isAdmin,
   validate({ param: uuidParamSchema, body: updateProductRequestSchema }),
@@ -35,7 +35,7 @@ router.put(
 );
 
 router.delete(
-  "/:id",
+  '/:id',
   isAuthenticated,
   isAdmin,
   validate({ param: uuidParamSchema }),

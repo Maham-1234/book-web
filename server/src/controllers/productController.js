@@ -1,7 +1,7 @@
-const { successResponse, errorResponse } = require("../utils/responseHandler");
-const slugify = require("slugify");
-const { Product, Category, Review } = require("../models");
-const { Op } = require("sequelize");
+const { successResponse, errorResponse } = require('../utils/responseHandler');
+const slugify = require('slugify');
+const { Product, Category, Review } = require('../models');
+const { Op } = require('sequelize');
 
 exports.createProduct = async (req, res) => {
   try {
@@ -16,7 +16,7 @@ exports.createProduct = async (req, res) => {
     return successResponse(
       res,
       { product },
-      "Product created successfully.",
+      'Product created successfully.',
       201
     );
   } catch (error) {
@@ -33,8 +33,8 @@ exports.getAllProducts = async (req, res) => {
       categoryId,
       minPrice,
       maxPrice,
-      sortBy = "createdAt",
-      sortOrder = "DESC",
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
       page = 1,
       limit = 10,
     } = req.query;
@@ -42,7 +42,7 @@ exports.getAllProducts = async (req, res) => {
       where: {
         isActive: true,
       },
-      include: [{ model: Category, as: "category" }],
+      include: [{ model: Category, as: 'category' }],
       order: [[sortBy, sortOrder.toUpperCase()]],
       limit: parseInt(limit, 10),
       offset: (parseInt(page, 10) - 1) * parseInt(limit, 10),
@@ -79,10 +79,10 @@ exports.getAllProducts = async (req, res) => {
     return successResponse(
       res,
       { products },
-      "Products retrieved successfully."
+      'Products retrieved successfully.'
     );
   } catch (error) {
-    return errorResponse(res, "Failed to retrieve products.");
+    return errorResponse(res, 'Failed to retrieve products.');
   }
 };
 
@@ -95,23 +95,23 @@ exports.getProductById = async (req, res) => {
       include: [
         {
           model: Category,
-          as: "category", // Alias must match the association definition
+          as: 'category', // Alias must match the association definition
         },
         {
           model: Review,
-          as: "reviews",
-          include: ["user"], // Example of nested include to get the user of the review
+          as: 'reviews',
+          include: ['user'], // Example of nested include to get the user of the review
         },
       ],
     });
 
     if (!product) {
-      return errorResponse(res, "Product not found.", 404);
+      return errorResponse(res, 'Product not found.', 404);
     }
 
-    return successResponse(res, { product }, "Product retrieved successfully.");
+    return successResponse(res, { product }, 'Product retrieved successfully.');
   } catch (error) {
-    return errorResponse(res, "Failed to retrieve product.");
+    return errorResponse(res, 'Failed to retrieve product.');
   }
 };
 
@@ -119,7 +119,7 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const productData = req.body;
-    console.log("in update");
+    console.log('in update');
 
     // const updatedProduct = await ProductService.update(id, productData);
     const product = await Product.findByPk(id);
@@ -133,13 +133,13 @@ exports.updateProduct = async (req, res) => {
       return successResponse(
         res,
         { product: product },
-        "Product updated successfully."
+        'Product updated successfully.'
       );
     }
-console.log("product not found");
+    console.log('product not found');
     return errorResponse(
       res,
-      "Product not found or could not be updated.",
+      'Product not found or could not be updated.',
       404
     );
   } catch (error) {
@@ -156,13 +156,13 @@ exports.deleteProduct = async (req, res) => {
 
     const product = await Product.findByPk(id);
     if (!product) {
-      return errorResponse(res, "Product not found.", 404);
+      return errorResponse(res, 'Product not found.', 404);
     }
     product.isActive = false;
     await product.save();
 
-    return successResponse(res, null, "Product has been deactivated.");
+    return successResponse(res, null, 'Product has been deactivated.');
   } catch (error) {
-    return errorResponse(res, "Failed to delete product.");
+    return errorResponse(res, 'Failed to delete product.');
   }
 };

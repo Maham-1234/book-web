@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const Review = sequelize.define(
-  "Review",
+  'Review',
   {
     id: {
       type: DataTypes.UUID,
@@ -18,30 +18,34 @@ const Review = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    is_verified_purchase: {
+    isVerifiedPurchase: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+      field: 'is_verified_purchase',
     },
-    user_id: {
+    userId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "users",
-        key: "id",
+        model: 'users',
+        key: 'id',
       },
+      field: 'user_id',
     },
-    product_id: {
+    productId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "products",
-        key: "id",
+        model: 'products',
+        key: 'id',
       },
+      field: 'product_id',
     },
   },
   {
-    tableName: "reviews",
-    timestamps:true,
+    tableName: 'reviews',
+    underscored: true,
+    timestamps: true,
   }
 );
 

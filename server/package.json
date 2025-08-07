@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "promote-user": "node src/scripts/promoteUser.js"
+    "promote-user": "node src/scripts/promoteUser.js",
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "check-code": "npm run format && npm run lint"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +42,10 @@
   },
   "devDependencies": {
     "dotenv": "^17.2.1",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "sequelize-cli": "^6.6.3",
     "umzug": "^3.8.2"
   }

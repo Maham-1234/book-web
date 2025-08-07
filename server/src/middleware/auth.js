@@ -5,5 +5,7 @@ exports.isAuthenticated = (req, res, next) => {
 
 exports.isAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') return next();
-  res.status(403).json({ status: 'fail', message: 'Forbidden: Admin access required.' });
+  res
+    .status(403)
+    .json({ status: 'fail', message: 'Forbidden: Admin access required.' });
 };

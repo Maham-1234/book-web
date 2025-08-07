@@ -4,6 +4,6 @@ const { isAuthenticated } = require('../middleware/auth');
 
 router.use(isAuthenticated);
 
-router.post('/create-intent',()=>res.send('this is payment router'));
+router.post('/create-intent', () => res.send('this is payment router'));
 
 module.exports = router;

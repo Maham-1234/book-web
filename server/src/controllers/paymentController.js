@@ -18,7 +18,7 @@
 
 //     const paymentIntent = await stripe.paymentIntents.create({
 //       amount: Math.round(order.totalAmount * 100),
-//       currency: 'usd', 
+//       currency: 'usd',
 //       automatic_payment_methods: {
 //         enabled: true,
 //       },
@@ -26,7 +26,7 @@
 //         orderId: order.id,
 //       },
 //     });
-    
+
 //     order.stripePaymentId = paymentIntent.id;
 //     await order.save();
 

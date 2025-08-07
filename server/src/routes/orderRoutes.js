@@ -1,34 +1,34 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const orderController = require("../controllers/orderController");
-const validate = require("../middleware/validation");
-const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const orderController = require('../controllers/orderController');
+const validate = require('../middleware/validation');
+const { isAuthenticated, isAdmin } = require('../middleware/auth');
 
 const {
   createOrderRequestSchema,
   orderParamsSchema,
-} = require("../zod-schemas");
+} = require('../zod-schemas');
 
 router.use(isAuthenticated);
 
 router.post(
-  "/",
+  '/',
   validate({ body: createOrderRequestSchema }),
   orderController.createOrder
 );
 
-router.get("/", orderController.getUserOrders);
+router.get('/', orderController.getUserOrders);
 
 router.get(
-  "/:orderId",
+  '/:orderId',
   validate({ params: orderParamsSchema }),
   orderController.getOrderById
 );
 
-router.get("/admin/all", isAdmin, orderController.getAllOrders);
+router.get('/admin/all', isAdmin, orderController.getAllOrders);
 
 router.put(
-  "/admin/:orderId/status",
+  '/admin/:orderId/status',
   isAdmin,
   validate({ params: orderParamsSchema }),
   orderController.updateOrderStatus

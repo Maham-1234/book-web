@@ -1,5 +1,5 @@
-const { Review, Order, OrderItem, Product, User } = require("../models");
-const { successResponse, errorResponse } = require("../utils/responseHandler");
+const { Review, Order, OrderItem, Product, User } = require('../models');
+const { successResponse, errorResponse } = require('../utils/responseHandler');
 
 exports.getProductReviews = async (req, res) => {
   try {
@@ -7,7 +7,7 @@ exports.getProductReviews = async (req, res) => {
 
     const product = await Product.findByPk(productId);
     if (!product) {
-      return errorResponse(res, "Product not found.", 404);
+      return errorResponse(res, 'Product not found.', 404);
     }
 
     const reviews = await Review.findAll({
@@ -15,16 +15,16 @@ exports.getProductReviews = async (req, res) => {
       include: [
         {
           model: User,
-          as: "user",
-          attributes: ["id", "first_name"],
+          as: 'user',
+          attributes: ['id', 'firstName'],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
     });
 
-    return successResponse(res, { reviews }, "Reviews retrieved successfully.");
+    return successResponse(res, { reviews }, 'Reviews retrieved successfully.');
   } catch (error) {
-    return errorResponse(res, "Failed to retrieve reviews.");
+    return errorResponse(res, 'Failed to retrieve reviews.');
   }
 };
 
@@ -34,43 +34,43 @@ exports.createReview = async (req, res) => {
 
   try {
     const existingReview = await Review.findOne({
-      where: { user_id: userId, product_id: productId },
+      where: { userId: userId, productId: productId },
     });
     if (existingReview) {
-      return errorResponse(res, "You have already reviewed this product.", 422);
+      return errorResponse(res, 'You have already reviewed this product.', 422);
     }
 
     const hasPurchased = await Order.findOne({
       where: {
-        user_id: userId,
-        status: "delivered",
+        userId: userId,
+        status: 'delivered',
       },
       include: [
         {
           model: OrderItem,
-          as: "items",
-          where: { product_id: productId },
+          as: 'items',
+          where: { productId: productId },
           required: true,
         },
       ],
     });
 
     const newReview = await Review.create({
-      user_id: userId,
-      product_id: productId,
+      userId: userId,
+      productId: productId,
       rating,
       comment,
-      is_verified_purchase: !!hasPurchased,
+      isVerifiedPurchase: !!hasPurchased,
     });
 
     return successResponse(
       res,
       { review: newReview },
-      "Thank you for your review!",
+      'Thank you for your review!',
       201
     );
   } catch (error) {
-    return errorResponse(res, "Failed to create review.");
+    return errorResponse(res, 'Failed to create review.');
   }
 };
 
@@ -81,12 +81,12 @@ exports.updateReview = async (req, res) => {
 
   try {
     const review = await Review.findOne({
-      where: { id: reviewId, user_id: userId },
+      where: { id: reviewId, userId: userId },
     });
     if (!review) {
       return errorResponse(
         res,
-        "Review not found or you do not have permission to edit it.",
+        'Review not found or you do not have permission to edit it.',
         404
       );
     }
@@ -95,9 +95,9 @@ exports.updateReview = async (req, res) => {
     review.comment = comment || review.comment;
     await review.save();
 
-    return successResponse(res, { review }, "Review updated successfully.");
+    return successResponse(res, { review }, 'Review updated successfully.');
   } catch (error) {
-    return errorResponse(res, "Failed to update review.");
+    return errorResponse(res, 'Failed to update review.');
   }
 };
 
@@ -110,15 +110,15 @@ exports.deleteReview = async (req, res) => {
     if (!review) {
       return errorResponse(
         res,
-        "Review not found or you do not have permission to delete it.",
+        'Review not found or you do not have permission to delete it.',
         404
       );
     }
 
     await review.destroy();
 
-    return successResponse(res, null, "Review has been deleted.");
+    return successResponse(res, null, 'Review has been deleted.');
   } catch (error) {
-    return errorResponse(res, "Failed to delete review.");
+    return errorResponse(res, 'Failed to delete review.');
   }
 };
