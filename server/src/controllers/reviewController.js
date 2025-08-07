@@ -24,6 +24,8 @@ exports.getProductReviews = async (req, res) => {
 
     return successResponse(res, { reviews }, 'Reviews retrieved successfully.');
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to retrieve reviews.');
   }
 };
@@ -70,6 +72,8 @@ exports.createReview = async (req, res) => {
       201
     );
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to create review.');
   }
 };
@@ -97,6 +101,8 @@ exports.updateReview = async (req, res) => {
 
     return successResponse(res, { review }, 'Review updated successfully.');
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to update review.');
   }
 };
@@ -119,6 +125,8 @@ exports.deleteReview = async (req, res) => {
 
     return successResponse(res, null, 'Review has been deleted.');
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to delete review.');
   }
 };

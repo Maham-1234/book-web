@@ -140,6 +140,7 @@ exports.getUserOrders = async (req, res) => {
       'User orders retrieved successfully.'
     );
   } catch (error) {
+    console.log(error.message);
     return errorResponse(res, 'Failed to retrieve user orders.');
   }
 };
@@ -166,6 +167,8 @@ exports.getOrderById = async (req, res) => {
 
     return successResponse(res, { order }, 'Order retrieved successfully.');
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to retrieve order.');
   }
 };
@@ -199,6 +202,8 @@ exports.getAllOrders = async (req, res) => {
       'All orders retrieved successfully.'
     );
   } catch (error) {
+    console.log(error.message);
+
     return errorResponse(res, 'Failed to retrieve all orders.');
   }
 };
