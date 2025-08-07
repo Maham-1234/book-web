@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 const validate = require('../middleware/validation');
 const { isAuthenticated } = require('../middleware/auth');
 const { registerRequestSchema, loginRequestSchema } = require('../zod-schemas');
+const upload = require('../middleware/fileUpload');
 
 router.post(
   '/register',
@@ -20,8 +21,14 @@ router.post(
 
 router.post('/logout', isAuthenticated, authController.logout);
 
-//get profile
 router.get('/me', isAuthenticated, authController.getCurrentUser);
+
+router.post(
+  '/avatar',
+  isAuthenticated,
+  upload.single('avatar'),
+  authController.uploadAvatar
+);
 
 router.get(
   '/google',
