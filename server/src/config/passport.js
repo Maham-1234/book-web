@@ -1,32 +1,32 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const { User } = require("../models");
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { User } = require('../models');
 
 passport.use(
   new LocalStrategy(
-    { usernameField: "email" },
+    { usernameField: 'email' },
     async (email, password, done) => {
       try {
-        const user = await User.scope("withPassword").findOne({
+        const user = await User.scope('withPassword').findOne({
           where: { email },
         });
 
-        if (!user || user.provider !== "local") {
-          return done(null, false, { message: "Invalid email or password." });
+        if (!user || user.provider !== 'local') {
+          return done(null, false, { message: 'Invalid email or password.' });
         }
 
         if (!user.isActive) {
           return done(null, false, {
-            message: "This account has been deactivated.",
+            message: 'This account has been deactivated.',
           });
         }
 
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-          return done(null, false, { message: "Invalid email or password." });
+          return done(null, false, { message: 'Invalid email or password.' });
         }
 
         return done(null, user);
@@ -42,7 +42,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback",
+      callbackURL: '/api/auth/google/callback',
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -57,7 +57,7 @@ passport.use(
 
         if (user) {
           user.googleId = profile.id;
-          user.provider = "google";
+          user.provider = 'google';
           await user.save();
           return done(null, user);
         }
@@ -68,7 +68,7 @@ passport.use(
           lastName: profile.name.familyName,
           email: email,
           password: null,
-          provider: "google",
+          provider: 'google',
           isEmailVerified: true,
         });
 

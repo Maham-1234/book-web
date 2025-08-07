@@ -1,16 +1,16 @@
-const { z } = require("zod");
-const { productResponseSchema } = require("./productSchemas");
+const { z } = require('zod');
+const { productResponseSchema } = require('./productSchema');
 
 const addressSchema = z.object({
-  street: z.string().min(1, "Street is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  country: z.string().min(2, "A valid country is required"),
+  street: z.string().min(1, 'Street is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  country: z.string().min(2, 'A valid country is required'),
 });
 
 //order items are generated automatically from the cart by the server
 const createOrderRequestSchema = z.object({
-  shipping_address: addressSchema,
+  shippingAddress: addressSchema,
 });
 
 const orderItemResponseSchema = z.object({
@@ -27,14 +27,14 @@ const orderItemResponseSchema = z.object({
 
 const orderResponseSchema = z.object({
   id: z.string().uuid(),
-  order_number: z.string(),
-  total_amount: z.string(),
-  status: z.enum(["pending", "paid", "shipped", "delivered", "cancelled"]),
-  shipping_address: addressSchema,
-  payment_method: z.string(),
-  stripe_payment_id: z.string().nullable(),
-  created_at: z.date(),
-  updated_at: z.date(),
+  orderNumber: z.string(),
+  totalAmount: z.string(),
+  status: z.enum(['pending', 'paid', 'shipped', 'delivered', 'cancelled']),
+  shippingAddress: addressSchema,
+  paymentMethod: z.string(),
+  stripePaymentMethod: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
   items: z.array(orderItemResponseSchema),
 });
 

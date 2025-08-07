@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const CartItem = sequelize.define(
-  "CartItem",
+  'CartItem',
   {
     id: {
       type: DataTypes.UUID,
@@ -14,26 +14,30 @@ const CartItem = sequelize.define(
       allowNull: false,
       validate: { min: 1 },
     },
-    cart_id: {
+    cartId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "carts",
-        key: "id",
+        model: 'carts',
+        key: 'id',
       },
+      field: 'cart_id',
     },
-    product_id: {
+    productId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "products",
-        key: "id",
+        model: 'products',
+        key: 'id',
       },
+      field: 'product_id',
     },
   },
   {
-    tableName: "cart_items",
-    indexes: [{ unique: true, fields: ["cartId", "productId"] }],
+    tableName: 'cart_items',
+    underscored: true,
+    timestamps: true,
+    indexes: [{ unique: true, fields: ['cart_id', 'product_id'] }],
   }
 );
 

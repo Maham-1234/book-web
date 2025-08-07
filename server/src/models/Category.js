@@ -1,13 +1,13 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const Category = sequelize.define(
-  "Category",
+  'Category',
   {
     id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
+      type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
@@ -19,21 +19,25 @@ const Category = sequelize.define(
       allowNull: false,
       unique: true,
     },
-    parent_id: {
-      type: DataTypes.UUID,
+    parentId: {
+      type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: "categories",
-        key: "id",
+        model: 'categories',
+        key: 'id',
       },
+      field: 'parent_id',
     },
-    is_active: {
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+      field: 'is_active',
     },
   },
   {
-    tableName: "categories",
+    tableName: 'categories',
+    underscored: true,
+    timestamps: true,
   }
 );
 

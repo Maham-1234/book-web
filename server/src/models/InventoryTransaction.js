@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const InventoryTransaction = sequelize.define(
-  "InventoryTransaction",
+  'InventoryTransaction',
   {
     id: {
       type: DataTypes.UUID,
@@ -10,7 +10,7 @@ const InventoryTransaction = sequelize.define(
       primaryKey: true,
     },
     type: {
-      type: DataTypes.ENUM("in", "out"),
+      type: DataTypes.ENUM('in', 'out'),
       allowNull: false,
     },
     quantity: {
@@ -18,28 +18,32 @@ const InventoryTransaction = sequelize.define(
       allowNull: false,
     },
     reason: {
-      type: DataTypes.ENUM("sale", "restock", "return", "damage", "initial"),
+      type: DataTypes.ENUM('sale', 'restock', 'return', 'damage', 'initial'),
       allowNull: false,
     },
-    product_id: {
+    productId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "products",
-        key: "id",
+        model: 'products',
+        key: 'id',
       },
+      field: 'product_id',
     },
-    order_id: {
+    orderId: {
       type: DataTypes.UUID,
       allowNull: true,
       references: {
-        model: "orders",
-        key: "id",
+        model: 'orders',
+        key: 'id',
       },
+      field: 'order_id',
     },
   },
   {
-    tableName: "inventory_transactions",
+    tableName: 'inventory_transactions',
+    underscored: true,
+    timestamps: true,
   }
 );
 

@@ -1,8 +1,8 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const OrderItem = sequelize.define(
-  "OrderItem",
+  'OrderItem',
   {
     id: {
       type: DataTypes.UUID,
@@ -17,25 +17,29 @@ const OrderItem = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
-    order_id: {
+    orderId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "orders",
-        key: "id",
+        model: 'orders',
+        key: 'id',
       },
+      field: 'order_id',
     },
-    product_id: {
+    productId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "products",
-        key: "id",
+        model: 'products',
+        key: 'id',
       },
+      field: 'product_id',
     },
   },
   {
-    tableName: "order_items",
+    tableName: 'order_items',
+    underscored: true,
+    timestamps: true,
   }
 );
 

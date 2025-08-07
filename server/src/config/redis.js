@@ -1,4 +1,4 @@
-const { createClient } = require("redis");
+const { createClient } = require('redis');
 
 const redisClient = createClient({
   url: process.env.REDIS_URL,
@@ -10,7 +10,7 @@ const connectRedis = async () => {
   if (!isConnected) {
     await redisClient.connect();
     isConnected = true;
-    console.log("Redis client connected");
+    console.log('Redis client connected');
   }
 };
 

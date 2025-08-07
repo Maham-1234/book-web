@@ -1,62 +1,70 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/database");
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
 const Order = sequelize.define(
-  "Order",
+  'Order',
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    order_number: {
+    orderNumber: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      field: 'order_number',
     },
-    total_amount: {
+    totalAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      field: 'total_amount',
     },
     status: {
       type: DataTypes.ENUM(
-        "pending",
-        "paid",
-        "shipped",
-        "delivered",
-        "cancelled"
+        'pending',
+        'paid',
+        'shipped',
+        'delivered',
+        'cancelled'
       ),
-      defaultValue: "pending",
+      defaultValue: 'pending',
     },
-    shipping_address: {
+    shippingAddress: {
       type: DataTypes.JSONB,
       allowNull: false,
+      field: 'shipping_address',
     },
-    payment_method: {
+    paymentMethod: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "stripe",
+      defaultValue: 'stripe',
+      field: 'payment_method',
     },
-    stripe_payment_id: {
+    stripePaymentId: {
       type: DataTypes.STRING,
       allowNull: true,
+      field: 'stripe_payment_id',
     },
-    user_id: {
+    userId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "users",
-        key: "id",
+        model: 'users',
+        key: 'id',
       },
+      field: 'user_id',
     },
   },
   {
-    tableName: "orders",
+    tableName: 'orders',
+    underscored: true,
+    timestamps: true,
   }
 );
 
-Order.addHook("beforeValidate", (order) => {
-  order.order_number = `ORD-${Date.now()}${Math.random()
+Order.addHook('beforeValidate', (order) => {
+  order.orderNumber = `ORD-${Date.now()}${Math.random()
     .toString()
     .slice(2, 7)}`;
 });
