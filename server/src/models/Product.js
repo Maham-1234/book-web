@@ -38,7 +38,7 @@ const Product = sequelize.define(
       defaultValue: [],
     },
     productType: {
-      type: DataTypes.ENUM('book', 'stationery', 'art_supply', 'other'),
+      type: DataTypes.ENUM('Books', 'Stationary'),
       allowNull: false,
       field: 'product_type',
     },
