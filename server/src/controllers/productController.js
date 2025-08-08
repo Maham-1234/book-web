@@ -2,12 +2,13 @@ const { successResponse, errorResponse } = require('../utils/responseHandler');
 const slugify = require('slugify');
 const { Product, Category, Review } = require('../models');
 const { Op } = require('sequelize');
+const path = require('path');
 
 exports.createProduct = async (req, res) => {
   try {
     const productData = req.body;
     const slug = slugify(productData.name);
-    console.log('product slugifiied');
+    console.log('product slugified');
     const product = await Product.create({
       ...productData,
       slug: slug,
@@ -22,6 +23,107 @@ exports.createProduct = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     return errorResponse(res, error.message, 422);
+  }
+};
+
+exports.uploadProductImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByPk(id);
+
+    if (!product) {
+      return errorResponse(res, 'Product not found.', 404);
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return errorResponse(res, 'No images uploaded.', 400);
+    }
+
+    const imageUrls = req.files.map((file) => {
+      const imagePath = path
+        .join('uploads', 'products', product.id.toString(), file.filename)
+        .replace(/\\/g, '/');
+      return `${req.protocol}://${req.get('host')}/${imagePath}`;
+    });
+
+    const updatedImages = product.images
+      ? [...product.images, ...imageUrls]
+      : imageUrls;
+
+    await product.update({ images: updatedImages });
+
+    return successResponse(
+      res,
+      { product },
+      'Images uploaded and product updated successfully.'
+    );
+  } catch (error) {
+    console.error(error.message);
+    return errorResponse(res, 'Failed to upload images.', 500);
+  }
+};
+
+/**
+ * Retrieves all products with filtering, sorting, and pagination.
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ */
+exports.getAllProducts = async (req, res) => {
+  try {
+    const {
+      search,
+      categoryId,
+      minPrice,
+      maxPrice,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+      page = 1,
+      limit = 10,
+    } = req.query;
+    const options = {
+      where: {
+        isActive: true,
+      },
+      include: [{ model: Category, as: 'category' }],
+      order: [[sortBy, sortOrder.toUpperCase()]],
+      limit: parseInt(limit, 10),
+      offset: (parseInt(page, 10) - 1) * parseInt(limit, 10),
+    };
+    if (search) {
+      options.where.name = { [Op.iLike]: `%${search}%` };
+    }
+    if (categoryId) {
+      options.where.categoryId = categoryId;
+    }
+    if (minPrice) {
+      options.where.price = {
+        ...options.where.price,
+        [Op.gte]: parseFloat(minPrice),
+      };
+    }
+    if (maxPrice) {
+      options.where.price = {
+        ...options.where.price,
+        [Op.lte]: parseFloat(maxPrice),
+      };
+    }
+
+    const { count, rows } = await Product.findAndCountAll(options);
+
+    const products = {
+      products: rows,
+      totalProducts: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page, 10),
+    };
+
+    return successResponse(
+      res,
+      { products },
+      'Products retrieved successfully.'
+    );
+  } catch (error) {
+    return errorResponse(res, 'Failed to retrieve products.');
   }
 };
 

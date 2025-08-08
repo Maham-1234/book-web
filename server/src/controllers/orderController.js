@@ -238,3 +238,55 @@ exports.updateOrderStatus = async (req, res) => {
     return errorResponse(res, error.message);
   }
 };
+
+exports.cancelOrder = async (req, res) => {
+  const userId = req.user.id;
+  const { orderId } = req.params;
+  const t = await sequelize.transaction();
+
+  try {
+    const order = await Order.findOne({
+      where: { id: orderId, userId },
+      include: [{ model: OrderItem, as: 'items', include: ['product'] }],
+      transaction: t,
+    });
+
+    if (!order) {
+      return errorResponse(
+        res,
+        'Order not found or you do not have permission to cancel it.',
+        404
+      );
+    }
+    if (!['pending', 'paid'].includes(order.status)) {
+      throw new Error(`Cannot cancel an order with status: ${order.status}.`);
+    }
+
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    if (new Date(order.createdAt) < twentyFourHoursAgo) {
+      throw new Error('The 24-hour cancellation window has passed.');
+    }
+
+    order.status = 'cancelled';
+    await order.save({ transaction: t });
+
+    for (const item of order.items) {
+      await Product.increment('stock', {
+        by: item.quantity,
+        where: { id: item.productId },
+        transaction: t,
+      });
+    }
+
+    await t.commit();
+
+    return successResponse(
+      res,
+      { order },
+      'Your order has been cancelled successfully.'
+    );
+  } catch (error) {
+    await t.rollback();
+    return errorResponse(res, error.message, 422);
+  }
+};

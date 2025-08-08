@@ -135,7 +135,7 @@ const seedDatabase = async () => {
       productsData.map((p) => ({
         ...p,
         // Add a random placeholder image to each product
-        images: [`https://picsum.photos/400/600?random=${Math.random()}`],
+        // images: [`https://picsum.photos/400/600?random=${Math.random()}`],
       }))
     );
     console.log(`Created ${products.length} products.`);

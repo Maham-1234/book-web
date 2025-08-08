@@ -34,4 +34,6 @@ router.put(
   orderController.updateOrderStatus
 );
 
+router.delete('/:orderId', orderController.cancelOrder);
+
 module.exports = router;

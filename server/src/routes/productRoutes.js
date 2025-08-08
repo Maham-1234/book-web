@@ -3,6 +3,7 @@ const router = express.Router();
 const validate = require('../middleware/validation');
 const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const productController = require('../controllers/productController');
+const productImageUpload = require('../middleware/productImageUpload');
 
 const {
   createProductRequestSchema,
@@ -24,6 +25,12 @@ router.post(
   isAdmin,
   validate({ body: createProductRequestSchema }),
   productController.createProduct
+);
+
+router.post(
+  '/:id/images',
+  productImageUpload.array('images', 5),
+  productController.uploadProductImages
 );
 
 router.put(
