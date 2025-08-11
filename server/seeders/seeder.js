@@ -168,7 +168,7 @@ const seedDatabase = async () => {
     console.log(`Created ${reviews.length} reviews.`);
 
     // 6. Final Summary
-    console.log('\n✅ Sample data created successfully!');
+    console.log('\nSample data created successfully!');
     console.log('\n🔑 Test Accounts:');
     console.log(`   Admin: ${adminUser.email} / AdminPassword1!`);
     console.log(`   User: ${buyers[0].email} / BuyerPassword1!`);
@@ -177,7 +177,7 @@ const seedDatabase = async () => {
     // Exit the script
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error('Error seeding database:', error);
     process.exit(1);
   }
 };

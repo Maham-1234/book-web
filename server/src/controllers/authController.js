@@ -145,3 +145,61 @@ exports.uploadAvatar = async (req, res) => {
     return errorResponse(res, error.message || 'Failed to upload avatar.');
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return errorResponse(
+      res,
+      'You are not authorized to view this resource.',
+      403
+    );
+  }
+
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+
+    const { count, rows } = await User.findAndCountAll({
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit, 10),
+      offset: offset,
+      attributes: { exclude: ['password'] },
+    });
+
+    return successResponse(
+      res,
+      {
+        users: rows,
+        totalUsers: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page, 10),
+      },
+      'All users retrieved successfully.'
+    );
+  } catch (error) {
+    console.log(error.message);
+    return errorResponse(res, 'Failed to retrieve all users.');
+  }
+};
+
+exports.updateUserAsAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isActive } = req.body;
+    console.log(userId);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return errorResponse(res, 'User not found.', 404);
+    }
+
+    if (typeof isActive === 'boolean') {
+      user.isActive = isActive;
+    }
+
+    await user.save();
+    return successResponse(res, { user }, 'User updated successfully.');
+  } catch (error) {
+    console.log(error.message);
+    return errorResponse(res, 'Failed to update user.');
+  }
+};

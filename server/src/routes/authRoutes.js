@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const authController = require('../controllers/authController');
 const validate = require('../middleware/validation');
-const { isAuthenticated } = require('../middleware/auth');
+const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { registerRequestSchema, loginRequestSchema } = require('../zod-schemas');
 const upload = require('../middleware/fileUpload');
 
@@ -43,4 +43,12 @@ router.get(
   })
 );
 
+router.get('/all', isAuthenticated, isAdmin, authController.getAllUsers);
+
+router.put(
+  '/admin/updateUser/:userId',
+  isAuthenticated,
+  isAdmin,
+  authController.updateUserAsAdmin
+);
 module.exports = router;
