@@ -2,6 +2,8 @@ const validate =
   (schemas = {}) =>
   async (req, res, next) => {
     try {
+      console.log('Validating request body:', req.body);
+
       if (schemas.params) {
         req.params = await schemas.params.parseAsync(req.params);
       }
