@@ -55,6 +55,11 @@ const Order = sequelize.define(
       },
       field: 'user_id',
     },
+    paymentIntentId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'payment_intent_id',
+    },
   },
   {
     tableName: 'orders',

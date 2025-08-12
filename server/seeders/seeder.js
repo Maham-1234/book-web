@@ -16,7 +16,7 @@ const seedDatabase = async () => {
       firstName: 'Admin',
       lastName: 'User',
       email: 'admin@bookweb.com',
-      password: 'AdminPassword1!', // The model hook will hash this
+      password: 'AdminPassword1!',
       role: 'admin',
       isEmailVerified: true,
     });

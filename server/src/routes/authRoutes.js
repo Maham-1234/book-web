@@ -39,7 +39,7 @@ router.get(
   '/google/callback',
   passport.authenticate('google', {
     failureRedirect: `${process.env.FRONTEND_URL}/login?error=google`,
-    successRedirect: `${process.env.FRONTEND_URL}/dashboard`,
+    successRedirect: `${process.env.FRONTEND_URL}/auth/callback`,
   })
 );
 

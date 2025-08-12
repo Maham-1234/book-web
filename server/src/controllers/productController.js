@@ -1,19 +1,44 @@
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 const slugify = require('slugify');
-const { Product, Category, Review } = require('../models');
+const {
+  Product,
+  Category,
+  Review,
+  InventoryTransaction,
+  sequelize,
+} = require('../models');
 const { Op } = require('sequelize');
 const path = require('path');
 
 exports.createProduct = async (req, res) => {
+  const t = await sequelize.transaction();
+
   try {
     const productData = req.body;
     const slug = slugify(productData.name);
-    console.log('product slugified');
-    const product = await Product.create({
-      ...productData,
-      slug: slug,
-    });
-    console.log('product created');
+
+    const product = await Product.create(
+      {
+        ...productData,
+        slug: slug,
+      },
+      { transaction: t }
+    );
+
+    if (product.stock && product.stock > 0) {
+      await InventoryTransaction.create(
+        {
+          productId: product.id,
+          type: 'in',
+          quantity: product.stock,
+          reason: 'initial',
+        },
+        { transaction: t }
+      );
+    }
+
+    await t.commit();
+
     return successResponse(
       res,
       { product },
@@ -21,11 +46,11 @@ exports.createProduct = async (req, res) => {
       201
     );
   } catch (error) {
+    await t.rollback();
     console.log(error.message);
     return errorResponse(res, error.message, 422);
   }
 };
-
 exports.uploadProductImages = async (req, res) => {
   try {
     const { id } = req.params;
@@ -62,12 +87,95 @@ exports.uploadProductImages = async (req, res) => {
     return errorResponse(res, 'Failed to upload images.', 500);
   }
 };
+exports.updateProduct = async (req, res) => {
+  const t = await sequelize.transaction();
 
-/**
- * Retrieves all products with filtering, sorting, and pagination.
- * @param {object} req - The request object.
- * @param {object} res - The response object.
- */
+  try {
+    const { id } = req.params;
+    const productData = req.body;
+
+    const product = await Product.findByPk(id, { transaction: t });
+
+    if (!product) {
+      await t.commit();
+      return errorResponse(res, 'Product not found.', 404);
+    }
+
+    const originalStock = product.stock;
+
+    if (productData.name && productData.name !== product.name) {
+      productData.slug = slugify(productData.name);
+    }
+
+    await product.update(productData, { transaction: t });
+
+    const newStock = productData.stock;
+    if (newStock !== undefined && newStock !== originalStock) {
+      const quantityChange = newStock - originalStock;
+
+      let transactionRecord;
+
+      if (quantityChange > 0) {
+        transactionRecord = {
+          productId: product.id,
+          type: 'in',
+          quantity: quantityChange,
+          reason: 'restock',
+        };
+      } else {
+        transactionRecord = {
+          productId: product.id,
+          type: 'out',
+          quantity: Math.abs(quantityChange),
+          reason: 'damage',
+        };
+      }
+
+      await InventoryTransaction.create(transactionRecord, { transaction: t });
+    }
+
+    await t.commit();
+
+    return successResponse(
+      res,
+      { product: product },
+      'Product updated successfully.'
+    );
+  } catch (error) {
+    await t.rollback();
+    console.log(error.message);
+    return errorResponse(res, error.message, 422);
+  }
+};
+
+async function getDescendantCategoryIds(startCategoryId) {
+  const numericStartId = parseInt(startCategoryId, 10);
+  if (isNaN(numericStartId)) {
+    return [];
+  }
+
+  const allIds = [numericStartId];
+  const queue = [numericStartId];
+
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+
+    const children = await Category.findAll({
+      where: { parentId: currentId },
+      attributes: ['id'],
+    });
+
+    const childIds = children.map((child) => child.id);
+
+    if (childIds.length > 0) {
+      allIds.push(...childIds);
+      queue.push(...childIds);
+    }
+  }
+
+  return allIds;
+}
+
 exports.getAllProducts = async (req, res) => {
   try {
     const {
@@ -80,6 +188,13 @@ exports.getAllProducts = async (req, res) => {
       page = 1,
       limit = 10,
     } = req.query;
+    console.log(`\n--- Product Fetch Start ---`);
+    console.log(
+      `Received categoryId from query:`,
+      categoryId,
+      `(Type: ${typeof categoryId})`
+    );
+
     const options = {
       where: {
         isActive: true,
@@ -93,7 +208,12 @@ exports.getAllProducts = async (req, res) => {
       options.where.name = { [Op.iLike]: `%${search}%` };
     }
     if (categoryId) {
-      options.where.categoryId = categoryId;
+      console.log('entered categoryId: ', categoryId);
+      const categoryIdsToInclude = await getDescendantCategoryIds(categoryId);
+      console.log('categoryIdsToInclude: ', categoryIdsToInclude);
+      options.where.categoryId = {
+        [Op.in]: categoryIdsToInclude,
+      };
     }
     if (minPrice) {
       options.where.price = {
@@ -108,67 +228,6 @@ exports.getAllProducts = async (req, res) => {
       };
     }
 
-    const { count, rows } = await Product.findAndCountAll(options);
-
-    const products = {
-      products: rows,
-      totalProducts: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: parseInt(page, 10),
-    };
-
-    return successResponse(
-      res,
-      { products },
-      'Products retrieved successfully.'
-    );
-  } catch (error) {
-    return errorResponse(res, 'Failed to retrieve products.');
-  }
-};
-
-exports.getAllProducts = async (req, res) => {
-  try {
-    // const products = await ProductService.findAll(req.query);
-    const {
-      search,
-      categoryId,
-      minPrice,
-      maxPrice,
-      sortBy = 'createdAt',
-      sortOrder = 'DESC',
-      page = 1,
-      limit = 10,
-    } = req.query;
-    const options = {
-      where: {
-        isActive: true,
-      },
-      include: [{ model: Category, as: 'category' }],
-      order: [[sortBy, sortOrder.toUpperCase()]],
-      limit: parseInt(limit, 10),
-      offset: (parseInt(page, 10) - 1) * parseInt(limit, 10),
-    };
-    if (search) {
-      options.where.name = { [Op.iLike]: `%${search}%` }; // Case-insensitive search
-    }
-    if (categoryId) {
-      options.where.categoryId = categoryId;
-    }
-    if (minPrice) {
-      options.where.price = {
-        ...options.where.price,
-        [Op.gte]: parseFloat(minPrice),
-      };
-    }
-    if (maxPrice) {
-      options.where.price = {
-        ...options.where.price,
-        [Op.lte]: parseFloat(maxPrice),
-      };
-    }
-
-    // Use findAndCountAll for accurate pagination data
     const { count, rows } = await Product.findAndCountAll(options);
 
     const products = {
@@ -191,18 +250,17 @@ exports.getAllProducts = async (req, res) => {
 exports.getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    // const product = await ProductService.findById(id);
 
     const product = await Product.findByPk(id, {
       include: [
         {
           model: Category,
-          as: 'category', // Alias must match the association definition
+          as: 'category',
         },
         {
           model: Review,
           as: 'reviews',
-          include: ['user'], // Example of nested include to get the user of the review
+          include: ['user'],
         },
       ],
     });
@@ -217,43 +275,9 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-exports.updateProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const productData = req.body;
-    console.log('in update');
-
-    // const updatedProduct = await ProductService.update(id, productData);
-    const product = await Product.findByPk(id);
-    if (product) {
-      if (productData.name && productData.name !== product.name) {
-        productData.slug = slugify(productData.name);
-      }
-      console.log('about to update');
-
-      await product.update(productData);
-      return successResponse(
-        res,
-        { product: product },
-        'Product updated successfully.'
-      );
-    }
-    console.log('product not found');
-    return errorResponse(
-      res,
-      'Product not found or could not be updated.',
-      404
-    );
-  } catch (error) {
-    console.log(error.message);
-    return errorResponse(res, error.message, 422);
-  }
-};
-
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    // const result = await ProductService.softDelete(id);
     let result;
 
     const product = await Product.findByPk(id);

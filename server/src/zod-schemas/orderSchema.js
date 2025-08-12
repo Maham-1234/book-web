@@ -11,6 +11,7 @@ const addressSchema = z.object({
 //order items are generated automatically from the cart by the server
 const createOrderRequestSchema = z.object({
   shippingAddress: addressSchema,
+  paymentIntentId: z.string(),
 });
 
 const orderItemResponseSchema = z.object({

@@ -6,12 +6,18 @@ const {
   Product,
   Order,
   OrderItem,
+  InventoryTransaction,
 } = require('../models');
 const { successResponse, errorResponse } = require('../utils/responseHandler');
 
 exports.createOrder = async (req, res) => {
   const userId = req.user.id;
-  const { shippingAddress } = req.body;
+  const { shippingAddress, paymentIntentId } = req.body;
+  console.log('req.body', req.body);
+  if (!paymentIntentId) {
+    return errorResponse(res, 'Payment confirmation is missing.', 400);
+  }
+
   const t = await sequelize.transaction();
 
   try {
@@ -68,7 +74,8 @@ exports.createOrder = async (req, res) => {
         userId,
         shippingAddress,
         totalAmount,
-        status: 'pending',
+        status: 'paid',
+        paymentIntentId,
       },
       { transaction: t }
     );
@@ -90,6 +97,17 @@ exports.createOrder = async (req, res) => {
         transaction: t,
       });
     }
+
+    const inventoryTransactionsData = cart.items.map((item) => ({
+      productId: item.productId,
+      orderId: order.id,
+      type: 'out',
+      quantity: item.quantity,
+      reason: 'sale',
+    }));
+    await InventoryTransaction.bulkCreate(inventoryTransactionsData, {
+      transaction: t,
+    });
 
     // 7. Clear the user's cart.
     await CartItem.destroy({ where: { cartId: cart.id }, transaction: t });
@@ -149,6 +167,7 @@ exports.getOrderById = async (req, res) => {
   try {
     const userId = req.user.id;
     const { orderId } = req.params;
+    console.log('In getOrderbyId', orderId);
 
     const order = await Order.findOne({
       where: { id: orderId, userId: userId },
@@ -209,36 +228,76 @@ exports.getAllOrders = async (req, res) => {
 };
 
 exports.updateOrderStatus = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { status } = req.body;
+  const { orderId } = req.params;
+  const { status } = req.body;
 
-    if (
-      !status ||
-      !['pending', 'paid', 'shipped', 'delivered', 'cancelled'].includes(status)
-    ) {
-      return errorResponse(res, 'Invalid status value provided.', 400);
+  if (
+    !status ||
+    !['pending', 'paid', 'shipped', 'delivered', 'cancelled'].includes(status)
+  ) {
+    return errorResponse(res, 'Invalid status value provided.', 400);
+  }
+
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    return errorResponse(res, 'Order not found.', 404);
+  }
+
+  if (status === 'cancelled' && order.status !== 'cancelled') {
+    const t = await sequelize.transaction();
+    try {
+      const orderWithItems = await Order.findByPk(orderId, {
+        include: [{ model: OrderItem, as: 'items' }],
+        transaction: t,
+      });
+
+      // 1. Restock products
+      for (const item of orderWithItems.items) {
+        await Product.increment('stock', {
+          by: item.quantity,
+          where: { id: item.productId },
+          transaction: t,
+        });
+      }
+
+      // 2. Create 'return' inventory transactions for the restock
+      const inventoryTransactionsData = orderWithItems.items.map((item) => ({
+        productId: item.productId,
+        orderId: order.id,
+        type: 'in',
+        quantity: item.quantity,
+        reason: 'return',
+      }));
+      await InventoryTransaction.bulkCreate(inventoryTransactionsData, {
+        transaction: t,
+      });
+
+      // 3. Finally, update the order status
+      order.status = status;
+      await order.save({ transaction: t });
+
+      await t.commit();
+
+      return successResponse(
+        res,
+        { order },
+        'Order cancelled and items restocked successfully.'
+      );
+    } catch (error) {
+      await t.rollback();
+      return errorResponse(res, `Failed to cancel order: ${error.message}`);
     }
-
-    const order = await Order.findByPk(orderId);
-    if (!order) {
-      return errorResponse(res, 'Order not found.', 404);
-    }
-
+  } else {
+    // For any other status update, just save the new status
     order.status = status;
     await order.save();
-    //email
-
     return successResponse(
       res,
       { order },
       'Order status updated successfully.'
     );
-  } catch (error) {
-    return errorResponse(res, error.message);
   }
 };
-
 exports.cancelOrder = async (req, res) => {
   const userId = req.user.id;
   const { orderId } = req.params;
@@ -258,12 +317,14 @@ exports.cancelOrder = async (req, res) => {
         404
       );
     }
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     if (!['pending', 'paid'].includes(order.status)) {
+      console.log('❌ Cancel blocked: invalid status', order.status);
       throw new Error(`Cannot cancel an order with status: ${order.status}.`);
     }
 
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     if (new Date(order.createdAt) < twentyFourHoursAgo) {
+      console.log('❌ Cancel blocked: past 24 hours', order.createdAt);
       throw new Error('The 24-hour cancellation window has passed.');
     }
 
@@ -277,7 +338,16 @@ exports.cancelOrder = async (req, res) => {
         transaction: t,
       });
     }
-
+    const inventoryTransactionsData = order.items.map((item) => ({
+      productId: item.productId,
+      orderId: order.id,
+      type: 'in',
+      quantity: item.quantity,
+      reason: 'return',
+    }));
+    await InventoryTransaction.bulkCreate(inventoryTransactionsData, {
+      transaction: t,
+    });
     await t.commit();
 
     return successResponse(
