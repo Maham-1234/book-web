@@ -12,6 +12,7 @@ const path = require('path');
 
 const { sequelize } = require('./src/models');
 const validateEnv = require('./src/utils/validateEnv');
+const { startOrderProcessingJob } = require('./services/orderProcessor');
 
 const PORT = process.env.PORT || 3000;
 
@@ -98,6 +99,7 @@ const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => {
           console.log(`Server running on port ${PORT}`);
           console.log(`Environment: ${process.env.NODE_ENV}`);
+          startOrderProcessingJob();
         });
       } catch (error) {
         console.error('Unable to start server:', error);
