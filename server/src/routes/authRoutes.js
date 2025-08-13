@@ -3,8 +3,9 @@ const router = express.Router();
 const passport = require('passport');
 const authController = require('../controllers/authController');
 const validate = require('../middleware/validation');
-const { isAuthenticated } = require('../middleware/auth');
+const { isAuthenticated, isAdmin } = require('../middleware/auth');
 const { registerRequestSchema, loginRequestSchema } = require('../zod-schemas');
+const upload = require('../middleware/fileUpload');
 
 router.post(
   '/register',
@@ -20,8 +21,14 @@ router.post(
 
 router.post('/logout', isAuthenticated, authController.logout);
 
-//get profile
 router.get('/me', isAuthenticated, authController.getCurrentUser);
+
+router.post(
+  '/avatar',
+  isAuthenticated,
+  upload.single('avatar'),
+  authController.uploadAvatar
+);
 
 router.get(
   '/google',
@@ -32,8 +39,16 @@ router.get(
   '/google/callback',
   passport.authenticate('google', {
     failureRedirect: `${process.env.FRONTEND_URL}/login?error=google`,
-    successRedirect: `${process.env.FRONTEND_URL}/dashboard`,
+    successRedirect: `${process.env.FRONTEND_URL}/auth/callback`,
   })
 );
 
+router.get('/all', isAuthenticated, isAdmin, authController.getAllUsers);
+
+router.put(
+  '/admin/updateUser/:userId',
+  isAuthenticated,
+  isAdmin,
+  authController.updateUserAsAdmin
+);
 module.exports = router;

@@ -13,9 +13,7 @@ const reviewParamsSchema = z.object({
 });
 
 const orderParamsSchema = z.object({
-  orderId: z.string().refine((val) => !isNaN(parseInt(val, 10)), {
-    message: 'Order ID must be a number',
-  }),
+  orderId: z.string().uuid({ message: 'Order ID must be a valid UUID' }),
 });
 
 const cartItemParamsSchema = z.object({

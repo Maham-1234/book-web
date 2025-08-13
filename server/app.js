@@ -8,6 +8,7 @@ const { RedisStore } = require('connect-redis');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const path = require('path');
 
 const { sequelize } = require('./src/models');
 const validateEnv = require('./src/utils/validateEnv');
@@ -72,7 +73,13 @@ const PORT = process.env.PORT || 3000;
     app.use(express.urlencoded({ extended: true }));
 
     app.use(express.static('public'));
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    console.log(
+      `Serving static files from /uploads route, mapping to: ${uploadsDir}`
+    );
 
+    // This line should be BEFORE app.use('/', router);
+    app.use('/uploads', express.static(uploadsDir));
     app.use('/', router);
     const startServer = async () => {
       try {

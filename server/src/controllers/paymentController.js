@@ -1,40 +1,50 @@
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-// const { Order } = require('../models');
-// const { errorResponse } = require('../utils/responseHandler');
+const stripe = require('../config/stripe');
+const { successResponse, errorResponse } = require('../utils/responseHandler');
+const { Cart, CartItem, Product } = require('../models');
 
-// exports.createPaymentIntent = async (req, res) => {
-//   try {
-//     const { orderId } = req.body;
-//     const userId = req.user.id;
+exports.createPaymentIntent = async (req, res) => {
+  console.log(req.user);
+  const { id } = req.user;
 
-//     const order = await Order.findOne({ where: { id: orderId, userId: userId } });
+  try {
+    const cart = await Cart.findOne({
+      where: { userId: id },
+      include: [{ model: CartItem, as: 'items', include: ['product'] }],
+    });
 
-//     if (!order) {
-//       return errorResponse(res, 'Order not found.', 404);
-//     }
-//     if (order.status !== 'pending') {
-//       return errorResponse(res, 'This order has already been processed.', 422);
-//     }
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return errorResponse(
+        res,
+        'Cannot create payment: Your cart is empty.',
+        404
+      );
+    }
 
-//     const paymentIntent = await stripe.paymentIntents.create({
-//       amount: Math.round(order.totalAmount * 100),
-//       currency: 'usd',
-//       automatic_payment_methods: {
-//         enabled: true,
-//       },
-//       metadata: {
-//         orderId: order.id,
-//       },
-//     });
+    let totalAmount = 0;
+    for (const item of cart.items) {
+      if (!item.product) {
+        throw new Error(`Product with ID ${item.productId} not found.`);
+      }
+      totalAmount += parseFloat(item.product.price) * parseFloat(item.quantity);
+    }
+    console.log('totalAmount', totalAmount);
 
-//     order.stripePaymentId = paymentIntent.id;
-//     await order.save();
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: parseFloat((totalAmount * 100).toFixed(2)),
+      currency: 'usd',
+      metadata: { id, cartId: cart.id },
+    });
 
-//     res.send({
-//       clientSecret: paymentIntent.client_secret,
-//     });
-
-//   } catch (error) {
-//     return errorResponse(res, 'Failed to create payment intent.');
-//   }
-// };
+    return successResponse(
+      res,
+      { clientSecret: paymentIntent.client_secret },
+      'PaymentIntent created successfully.'
+    );
+  } catch (error) {
+    console.error('Error creating PaymentIntent:', error.message);
+    return errorResponse(
+      res,
+      `Failed to create payment intent: ${error.message}`
+    );
+  }
+};

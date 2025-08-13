@@ -7,6 +7,7 @@ const CartItem = require('./CartItem');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const Review = require('./Review');
+const InventoryTransaction = require('./InventoryTransaction');
 
 //a user can have one cart and a cart can belong to one user
 User.hasOne(Cart, { foreignKey: 'userId', as: 'cart' });
@@ -69,6 +70,24 @@ Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'items' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
 
+Product.hasMany(InventoryTransaction, {
+  foreignKey: 'productId',
+  as: 'inventoryTransactions',
+});
+InventoryTransaction.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+});
+
+Order.hasMany(InventoryTransaction, {
+  foreignKey: 'orderId',
+  as: 'inventoryTransactions',
+});
+InventoryTransaction.belongsTo(Order, {
+  foreignKey: 'orderId',
+  as: 'order',
+});
+
 module.exports = {
   sequelize,
   User,
@@ -79,4 +98,5 @@ module.exports = {
   Order,
   OrderItem,
   Review,
+  InventoryTransaction,
 };

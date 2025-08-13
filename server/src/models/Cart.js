@@ -16,7 +16,7 @@ const Cart = sequelize.define(
         model: 'users',
         key: 'id',
       },
-      filed: 'user_id',
+      field: 'user_id',
     },
   },
   {

@@ -7,6 +7,7 @@ exports.createCategory = async (req, res) => {
   try {
     const categoryData = req.body;
     const slug = slugify(categoryData.name);
+    console.log('Received req.body:', req.body);
 
     const category = await Category.create({
       ...categoryData,

@@ -3,7 +3,7 @@ const { z } = require('zod');
 const baseRequestSchema = z.object({
   name: z.string().min(3, 'Product name is too short'),
   description: z.string().min(10, 'Description is too short'),
-  price: z.number().positive('Price must be a positive number'),
+  price: z.coerce.number().positive('Price must be a positive number'),
   sku: z.string().min(3, 'SKU is required'),
   stock: z.number().int().min(0, 'Stock cannot be negative'),
   categoryId: z.number().int('A valid category ID is required'),
